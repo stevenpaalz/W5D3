@@ -15,7 +15,9 @@ CREATE TABLE questions (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     body TEXT NOT NULL,
-    author_id INTEGER NOT NULL
+    author_id INTEGER NOT NULL,
+
+    FOREIGN KEY (author_id) REFERENCES users(id)
 );
 
 CREATE TABLE question_follows (
@@ -59,9 +61,7 @@ VALUES ('I''m confused', 'how do we do this?', (SELECT id FROM users WHERE fname
     ('Still need help', 'Why am I lost?', (SELECT id FROM users WHERE fname = 'Charles'));
 
 INSERT INTO question_follows (user_id, questions_id)
-VALUES ((SELECT id FROM users WHERE id IN (SELECT author_id FROM questions LIMIT 1)), (SELECT id FROM questions LIMIT 1)),
-    ((SELECT id FROM users WHERE id IN (SELECT author_id FROM questions LIMIT 1 OFFSET 1)), (SELECT id FROM questions LIMIT 1 OFFSET 1)),
-    ((SELECT id FROM users WHERE id IN (SELECT author_id FROM questions LIMIT 1 OFFSET 2)), (SELECT id FROM questions LIMIT 1 OFFSET 2));
+VALUES (1, 1), (2,2), (1,2);
 
 INSERT INTO replies (subject_question, parent_reply, author_id, body)
 VALUES (1, NULL, 2, 'I don''t know'),
