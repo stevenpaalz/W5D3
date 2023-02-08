@@ -36,7 +36,7 @@ class Questions
 end
 
 class Users
-
+    attr_accessor :id, :fname, :lname
     def initialize(options)
         @id = options['id']
         @fname = options['fname']
@@ -49,6 +49,7 @@ class QuestionFollows
 
     def initialize(options)
         @user_id = options['user_id']
+        @questions_id = options['questions_id']
     end
 
 end
@@ -56,7 +57,11 @@ end
 class Replies
 
     def initialize(options)
-        
+        @id = options['id']
+        @subject_question = options['subject_question']
+        @parent_reply  = options['parent_reply']
+        @author_id = options['author_id']
+        @body = options['body']
     end
 
 end
@@ -64,6 +69,8 @@ end
 class QuestionsLikes
 
     def initialize(options)
-        
+        @id = options['id']
+        @subject_question = options['subject_question']
+        @liker_id = options['liker_id']
     end
 end
