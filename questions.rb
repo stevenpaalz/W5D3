@@ -1,5 +1,9 @@
 require 'sqlite3'
 require 'singleton'
+require_relative "users"
+require_relative "replies"
+require_relative "question_follows"
+require_relative "question_likes"
 
 class QuestionsDatabase < SQLite3::Database
     include Singleton
@@ -57,122 +61,23 @@ class Questions
         return author.first['fname'] + " " + author.first['lname']
     end
 
-end
-
-class Users
-    attr_accessor :id, :fname, :lname
-    def initialize(options)
-        @id = options['id']
-        @fname = options['fname']
-        @lname = options['lname']
-    end
-
-    def self.find_by_name(fname, lname)
-        name = QuestionsDatabase.instance.execute(<<-SQL, fname, lname)
+    def replies
+        reply = QuestionsDatabase.instance.execute(<<-SQL, self.id)
             SELECT
                 *
             FROM
-                users
+                replies
             WHERE
-                fname = ? AND lname = ? 
-        SQL
-        return nil unless name.length > 0
-        Users.new(name.first)
-    end
-
-    def self.find_by_id(id)
-        user = QuestionsDatabase.instance.execute(<<-SQL, id)
-            SELECT *
-            FROM users
-            WHERE id = ?
-        SQL
-        return nil unless user.length > 0
-        Users.new(user.first)
-    end
-
-    def authored_questions
-        Questions.find_by_author_id(self.id)
-
-    end
-
-    def authored_replies
-        Replies.find_by_user_id(self.id)
-    end
-end
-
-class QuestionFollows
-
-    def initialize(options)
-        @user_id = options['user_id']
-        @questions_id = options['questions_id']
-    end
-    
-
-end
-
-class Replies
-
-    def initialize(options)
-        @id = options['id']
-        @subject_question = options['subject_question']
-        @parent_reply  = options['parent_reply']
-        @author_id = options['author_id']
-        @body = options['body']
-    end
-
-
-    def self.find_by_id(id)
-        reply = QuestionsDatabase.instance.execute(<<-SQL, id)
-            SELECT *
-            FROM replies
-            WHERE id = ?
-        SQL
-        return nil unless reply.length > 0
-        Replies.new(reply.first)
-    end
-
-    def self.find_by_question(subject_question)
-        reply = QuestionsDatabase.instance.execute(<<-SQL, subject_question)
-            SELECT *
-            FROM replies
-            WHERE subject_question = ?
-        SQL
-        return nil unless reply.length > 0
-        Replies.new(reply.first)
-    end
-
-    def self.find_by_user_id(author_id)
-        reply = QuestionsDatabase.instance.execute(<<-SQL, author_id)
-            SELECT *
-            FROM questions
-            WHERE author_id = ?
+                subject_question = ?
         SQL
         return nil unless reply.length > 0
         if reply.length == 1
-            Replies.new(reply.first)
+            return Replies.new(reply.first)
         else
-            Replies.new(reply)
+            reply.map {|datum| Replies.new(datum)}
         end
     end
 
-end
-
-class QuestionsLikes
-
-    def initialize(options)
-        @id = options['id']
-        @subject_question = options['subject_question']
-        @liker_id = options['liker_id']
-    end
-
-    def self.find_by_id(id)
-        like = QuestionsDatabase.instance.execute(<<-SQL, id)
-            SELECT *
-            FROM question_likes
-            WHERE id = ?
-        SQL
-        return nil unless like.length > 0
-        QuestionsLikes.new(like.first)
-    end
     
+
 end
