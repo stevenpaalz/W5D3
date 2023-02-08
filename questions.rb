@@ -33,6 +33,30 @@ class Questions
         @author_id = options['author_id']
     end
 
+    def self.find_by_author_id(author_id)
+        question = QuestionsDatabase.instance.execute(<<-SQL, author_id)
+            SELECT *
+            FROM questions
+            WHERE author_id = ?
+        SQL
+        return nil unless question.length > 0
+        if question.length == 1
+            Questions.new(question.first)
+        else
+            question.map {|datum| Questions.new(datum)}
+        end
+    end
+
+    def author
+        author = QuestionsDatabase.instance.execute(<<-SQL, self.author_id)
+            SELECT fname, lname
+            FROM users
+            WHERE id = ?
+        SQL
+        return nil unless author.length > 0
+        return author.first['fname'] + " " + author.first['lname']
+    end
+
 end
 
 class Users
@@ -55,6 +79,25 @@ class Users
         return nil unless name.length > 0
         Users.new(name.first)
     end
+
+    def self.find_by_id(id)
+        user = QuestionsDatabase.instance.execute(<<-SQL, id)
+            SELECT *
+            FROM users
+            WHERE id = ?
+        SQL
+        return nil unless user.length > 0
+        Users.new(user.first)
+    end
+
+    def authored_questions
+        Questions.find_by_author_id(self.id)
+
+    end
+
+    def authored_replies
+        Replies.find_by_user_id(self.id)
+    end
 end
 
 class QuestionFollows
@@ -63,6 +106,7 @@ class QuestionFollows
         @user_id = options['user_id']
         @questions_id = options['questions_id']
     end
+    
 
 end
 
@@ -76,6 +120,41 @@ class Replies
         @body = options['body']
     end
 
+
+    def self.find_by_id(id)
+        reply = QuestionsDatabase.instance.execute(<<-SQL, id)
+            SELECT *
+            FROM replies
+            WHERE id = ?
+        SQL
+        return nil unless reply.length > 0
+        Replies.new(reply.first)
+    end
+
+    def self.find_by_question(subject_question)
+        reply = QuestionsDatabase.instance.execute(<<-SQL, subject_question)
+            SELECT *
+            FROM replies
+            WHERE subject_question = ?
+        SQL
+        return nil unless reply.length > 0
+        Replies.new(reply.first)
+    end
+
+    def self.find_by_user_id(author_id)
+        reply = QuestionsDatabase.instance.execute(<<-SQL, author_id)
+            SELECT *
+            FROM questions
+            WHERE author_id = ?
+        SQL
+        return nil unless reply.length > 0
+        if reply.length == 1
+            Replies.new(reply.first)
+        else
+            Replies.new(reply)
+        end
+    end
+
 end
 
 class QuestionsLikes
@@ -85,4 +164,15 @@ class QuestionsLikes
         @subject_question = options['subject_question']
         @liker_id = options['liker_id']
     end
+
+    def self.find_by_id(id)
+        like = QuestionsDatabase.instance.execute(<<-SQL, id)
+            SELECT *
+            FROM question_likes
+            WHERE id = ?
+        SQL
+        return nil unless like.length > 0
+        QuestionsLikes.new(like.first)
+    end
+    
 end
