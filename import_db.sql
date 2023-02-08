@@ -1,4 +1,9 @@
 PRAGMA foreign_keys = ON;
+DROP TABLE question_follows;
+DROP TABLE questions; 
+DROP TABLE users;
+DROP TABLE replies;
+DROP TABLE question_likes;
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
@@ -36,22 +41,31 @@ CREATE TABLE replies (
 
 CREATE TABLE question_likes (
     id INTEGER PRIMARY KEY,
-    likes INTEGER NOT NULL,
     subject_question INTEGER NOT NULL, 
-    author_id INTEGER NOT NULL,
+    liker_id INTEGER NOT NULL,
 
     FOREIGN KEY (subject_question) REFERENCES questions(id),
-    FOREIGN KEY (author_id) REFERENCES user(id)
+    FOREIGN KEY (liker_id) REFERENCES user(id)
 );
 
 
 INSERT INTO users (fname, lname)
-VALUES (Steve, Paalz),
-    (Charles, Cruse);
+VALUES ('Steve', 'Paalz'),
+    ('Charles', 'Cruse');
 
 INSERT INTO questions (title, body, author_id)
-VALUES ('I''m confused', 'how do we do this?', SELECT id FROM users WHERE fname = 'Steve'),
-    ('I''m also confused', 'whats going on?', SELECT id FROM users WHERE fname = 'Charles')
+VALUES ('I''m confused', 'how do we do this?', (SELECT id FROM users WHERE fname = 'Steve')),
+    ('I''m also confused', 'whats going on?', (SELECT id FROM users WHERE fname = 'Charles')),
+    ('Still need help', 'Why am I lost?', (SELECT id FROM users WHERE fname = 'Charles'));
 
 INSERT INTO question_follows (user_id, questions_id)
-VALUES (SELECT author_id, id FROM questions)
+VALUES ((SELECT id FROM users WHERE id IN (SELECT author_id FROM questions LIMIT 1)), (SELECT id FROM questions LIMIT 1)),
+    ((SELECT id FROM users WHERE id IN (SELECT author_id FROM questions LIMIT 1 OFFSET 1)), (SELECT id FROM questions LIMIT 1 OFFSET 1)),
+    ((SELECT id FROM users WHERE id IN (SELECT author_id FROM questions LIMIT 1 OFFSET 2)), (SELECT id FROM questions LIMIT 1 OFFSET 2));
+
+INSERT INTO replies (subject_question, parent_reply, author_id, body)
+VALUES (1, NULL, 2, 'I don''t know'),
+    (1, 1, 1, 'Why not?');
+
+INSERT INTO question_likes (subject_question, liker_id)
+VALUES (2, 1);
